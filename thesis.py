@@ -25,7 +25,7 @@ for file in data:
             for h in vad[date][v]:
                 hours = int(h)
                 minutes = (h*60) % 60
-                time_list.append('%d:%02d' % (hours,minutes))
+                time_list.append('%d%02d' % (hours,minutes))
         if v == 'height' and year == '2019':
             vad[date]['height'] = vad[date]['height']/1000
         if v == 'windspeed':
@@ -39,6 +39,7 @@ for file in data:
     del vad[date]['hour']
     try:
         del vad[date]['epochtime']
+        
     except:
         continue
 
@@ -62,7 +63,7 @@ for file in data:
             for h in stare[date][v]:
                 hours = int(h)
                 minutes = (h*60) % 60
-                time_list.append('%d:%02d' % (hours,minutes))
+                time_list.append('%d%02d' % (hours,minutes))
         if v == 'height' and year == '2019':
             stare[date]['height'] = stare[date]['height']/1000
         if v == 'velocity':
@@ -89,28 +90,8 @@ for date in stare:
     stare[date]['height'] = np.delete(stare[date]['height'], np.s_[h:])
     for v in stare[date]:
         if np.ndim(stare[date][v]) == 2:
-            stare[date][v] = np.delete(stare[date][v], np.s_[h:], axis = 1)
-'''  
-np.where(np.isnan(test).all(axis =  1))          
-# get rid of all columns with all nans
-for date in vad:
-    for scan in range(0, len(vad[date]['wspd'])):
-        if np.nansum(vad[date]['wspd'][scan]) == 0.0:
-            for v in vad[date]:
-                if v == 'height':
-                    continue
-                if np.ndim(vad[date][v]) == 2:
-                    np.delete(vad[date][v],scan, axis = 0)
-                    
-for date in stare:
-    for scan in range(0, len(stare[date]['w'])):
-        if np.nansum(stare[date]['w'][scan]) == 0.0:
-            for v in stare[date]:
-                if v == 'height':
-                    continue
-                if np.ndim(stare[date][v]) == 2:
-                    np.delete(stare[date][v], scan, axis = 0)    
-'''    
+            stare[date][v] = np.delete(stare[date][v], np.s_[h:], axis = 1)       
+ 
 # clean up the lats
 for date in stare:
     if str(stare[date]['lats'][-1]) == 'nan':
@@ -123,7 +104,42 @@ for date in vad:
     if str(vad[date]['lats'][-1]) == 'nan':
         del vad[date]['lats'][-1]
     if vad[date]['lats'][0] == -999:
-        del vad[date]['lats'][0]                    
+        del vad[date]['lats'][0]     
+
+# get rid of all nan columns
+for date in vad:
+    for v in vad[date]:
+        if v == 'base_time' or len(vad[date][v]) != len(vad[date]['wspd']) or np.ndim(vad[date][v]) > 2:
+            continue
+        no_data = np.where(np.isnan(vad[date]['wspd']).all(axis =  1))[0]
+        initial = vad[date][v]
+        try:
+            size = (len(initial) - len(no_data), np.shape(initial)[1])
+        except:
+            size = (len(initial) - len(no_data), np.shape(initial)[0])
+        new = np.ones(size)
+        column = 0
+        for i in range(0, len(initial)):
+            if i not in no_data:
+                new[column] = initial[i]
+        vad[date][v] = new
+            
+for date in stare:
+    for v in stare[date]:
+        if v == 'base_time' or len(stare[date][v]) != len(stare[date]['w']) or np.ndim(stare[date][v]) > 2:
+            continue
+        no_data = np.where(np.isnan(stare[date]['w']).all(axis =  1))[0]
+        initial = stare[date][v]
+        try:
+            size = (len(initial) - len(no_data), np.shape(initial)[1])
+        except:
+            size = (len(initial) - len(no_data), np.shape(initial)[0])
+        new = np.ones(size)
+        column = 0
+        for i in range(0, len(initial)):
+            if i not in no_data:
+                new[column] = initial[i]
+        stare[date][v] = new
 
 # save data as pickle file    
 with open(path + '/vad.pickle', "wb") as output_file:
@@ -278,16 +294,8 @@ for date in storm_vad:
             plt.xlabel('time (UTC)')
             figure.text(0.04, 0.5, 'height above lidar (km)', va = 'center', rotation = 'vertical')
             plt.suptitle('Storm ' + str(storm) + ' Wind Speed/Direction on ' + date)
-            plt.colorbar(speed, ax=ax1, label = 'wind speed')
+            plt.colorbar(speed, ax=ax1, label = 'wind speed', ticks = [0,2,4,6,8,10])
             plt.colorbar(dir, ax=ax2, label = 'wind direction', ticks = [0,60,120,180,240,300,360])
-
-            
-            
-
-
-
-
-
 
 
 
