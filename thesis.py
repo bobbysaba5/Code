@@ -25,7 +25,8 @@ for file in data:
             for h in vad[date][v]:
                 hours = int(h)
                 minutes = (h*60) % 60
-                time_list.append('%d%02d' % (hours,minutes))
+                seconds = (h*3600) % 60
+                time_list.append('%2d:%02d:%2d' % (hours,minutes,seconds))
         if v == 'height' and year == '2019':
             vad[date]['height'] = vad[date]['height']/1000
         if v == 'windspeed':
@@ -34,12 +35,10 @@ for file in data:
         if v == 'winddir':
             vad[date]['wdir'] = vad[date]['winddir']
             del vad[date]['winddir']
-    vad[date]['lats'] = np.unique(vad[date]['lat']).tolist()
     vad[date]['time'] = time_list
     del vad[date]['hour']
     try:
-        del vad[date]['epochtime']
-        
+        del vad[date]['epochtime']       
     except:
         continue
 
@@ -63,12 +62,13 @@ for file in data:
             for h in stare[date][v]:
                 hours = int(h)
                 minutes = (h*60) % 60
-                time_list.append('%d%02d' % (hours,minutes))
+                seconds = (h*3600) % 60
+                time_list.append('%2d:%02d:%2d' % (hours,minutes,seconds))
         if v == 'height' and year == '2019':
             stare[date]['height'] = stare[date]['height']/1000
         if v == 'velocity':
             stare[date]['w'] = stare[date]['velocity']
-    stare[date]['lats'] = np.unique(stare[date]['lat']).tolist()
+
     stare[date]['time'] = time_list 
     del stare[date]['hour']
     try:
@@ -76,8 +76,7 @@ for file in data:
     except:
         continue
            
-
-#chop off data above 4km
+#chop off data above 3km
 for date in vad:
     h = np.where(vad[date]['height'] >= 3)[0][0]
     vad[date]['height'] = np.delete(vad[date]['height'], np.s_[h:])
@@ -90,21 +89,7 @@ for date in stare:
     stare[date]['height'] = np.delete(stare[date]['height'], np.s_[h:])
     for v in stare[date]:
         if np.ndim(stare[date][v]) == 2:
-            stare[date][v] = np.delete(stare[date][v], np.s_[h:], axis = 1)       
- 
-# clean up the lats
-for date in stare:
-    if str(stare[date]['lats'][-1]) == 'nan':
-        del stare[date]['lats'][-1]
-    if stare[date]['lats'][0] == -999:
-        del stare[date]['lats'][0]
-
-
-for date in vad:
-    if str(vad[date]['lats'][-1]) == 'nan':
-        del vad[date]['lats'][-1]
-    if vad[date]['lats'][0] == -999:
-        del vad[date]['lats'][0]     
+            stare[date][v] = np.delete(stare[date][v], np.s_[h:], axis = 1)          
 
 # get rid of all nan columns
 for date in vad:
@@ -113,15 +98,19 @@ for date in vad:
             continue
         no_data = np.where(np.isnan(vad[date]['wspd']).all(axis =  1))[0]
         initial = vad[date][v]
-        try:
-            size = (len(initial) - len(no_data), np.shape(initial)[1])
-        except:
-            size = (len(initial) - len(no_data), np.shape(initial)[0])
-        new = np.ones(size)
+        if v == 'time':
+            new_time = []
+            for i in range(0, len(initial)):
+                if i not in no_data:
+                    new_time.append(initial[i])
+            vad[date][v] = new_time
+            continue
+        new = np.ones(np.shape(initial))
         column = 0
         for i in range(0, len(initial)):
             if i not in no_data:
                 new[column] = initial[i]
+                column += 1
         vad[date][v] = new
             
 for date in stare:
@@ -130,16 +119,52 @@ for date in stare:
             continue
         no_data = np.where(np.isnan(stare[date]['w']).all(axis =  1))[0]
         initial = stare[date][v]
-        try:
-            size = (len(initial) - len(no_data), np.shape(initial)[1])
-        except:
-            size = (len(initial) - len(no_data), np.shape(initial)[0])
-        new = np.ones(size)
+        if v == 'time':
+            new_time = []
+            for i in range(0, len(initial)):
+                if i not in no_data:
+                    new_time.append(initial[i])
+            stare[date][v] = new_time
+            continue
+        new = np.ones(np.shape(initial))
         column = 0
         for i in range(0, len(initial)):
             if i not in no_data:
                 new[column] = initial[i]
+                column += 1
         stare[date][v] = new
+
+# find unique lats and get rid of -999 and nan
+for date in vad:
+    vad[date]['lats'] = np.unique(vad[date]['lat']).tolist()
+
+for date in stare:
+    stare[date]['lats'] = np.unique(stare[date]['lat']).tolist()
+    
+for date in stare:
+    if str(stare[date]['lats'][-1]) == 'nan':
+        del stare[date]['lats'][-1]
+    if stare[date]['lats'][0] == -999:
+        del stare[date]['lats'][0]
+
+for date in vad:
+    if str(vad[date]['lats'][-1]) == 'nan':
+        del vad[date]['lats'][-1]
+    if vad[date]['lats'][0] == -999:
+        del vad[date]['lats'][0]  
+
+# clean up bad data points        
+for date in stare:
+    for v in stare[date]:
+        if np.ndim(stare[date][v]) == 2:
+            if v != 'intensity':
+                stare[date][v][stare[date]['intensity'] < 1.01] = np.nan
+    
+for date in vad:
+    for v in vad[date]:
+        if np.ndim(vad[date][v]) == 2:
+            if v != 'intensity':
+                vad[date][v][vad[date]['intensity'] < 1.01] = np.nan
 
 # save data as pickle file    
 with open(path + '/vad.pickle', "wb") as output_file:
@@ -252,20 +277,6 @@ for date in storm_stare:
     
 for date in storm_vad:
     del storm_vad[date]['indexes']
-
-for date in storm_stare:
-    for storm in storm_stare[date]:
-        for v in storm_stare[date][storm]:
-            if np.ndim(storm_stare[date][storm][v]) == 2:
-                if v != 'intensity':
-                    storm_stare[date][storm][v][storm_stare[date][storm]['intensity'] < 1.01] = np.nan
-        
-for date in storm_vad:
-    for storm in storm_vad[date]:
-        for v in storm_vad[date][storm]:
-            if np.ndim(storm_vad[date][storm][v]) == 2:
-                if v != 'intensity':
-                    storm_vad[date][storm][v][storm_vad[date][storm]['intensity'] < 1.01] = np.nan
 
 # save storm_data as pickle file    
 with open(path + '/storm_vad.pickle', "wb") as output_file:
