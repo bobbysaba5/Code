@@ -9,6 +9,8 @@ import datetime as dt
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/VAD')
 vad_path = '/Users/bobbysaba/Documents/Thesis/VAD'
 path = '/Users/bobbysaba/Documents/Thesis'
+'''
+untouched_data = ['rows', 'cols', 'height', 'no_data', 'covariance_matrix']
 
 vad = {}
 
@@ -42,11 +44,12 @@ for file in data:
                     month += 1
                     time_list.append(dt.datetime(year, month, day, hours, minutes, seconds))
         if v == 'height' and year == 2019:
-            vad[date]['height'] = vad[date]['height']/1000
-        if v == 'windspeed':
+            vad[date]['height'] = vad[date]['height'] / 1000
+        if v == 'windspeed' or v == 'wspd':
             vad[date][v][vad[date][v] > 50] = np.nan
             vad[date]['wspd'] = vad[date][v]
-            del vad[date][v]
+            if v == 'windspeed':
+                del vad[date]['windspeed']
         if v == 'winddir':
             vad[date]['wdir'] = vad[date]['winddir']
             del vad[date]['winddir']
@@ -55,6 +58,10 @@ for file in data:
         del vad[date]['epochtime']       
     except:
         continue
+
+# get rid of dates with no or all bad data
+del vad['20190528']
+del vad['20220526']
 
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/STARE')
 stare_path = '/Users/bobbysaba/Documents/Thesis/STARE'
@@ -90,8 +97,8 @@ for file in data:
                     day = 1
                     month += 1
                     time_list.append(dt.datetime(year, month, day, hours, minutes, seconds))
-        if v == 'height' and year == '2019':
-            stare[date]['height'] = stare[date]['height']/1000
+        if v == 'height' and year == 2019:
+            stare[date]['height'] = stare[date]['height'] / 1000
         if v == 'velocity':
             stare[date]['w'] = stare[date]['velocity']
     stare[date]['time'] = np.array(time_list)
@@ -100,38 +107,90 @@ for file in data:
         del stare[date]['epochtime']
     except:
         continue
-'''   
+
+# delete lowest 3 values
+for date in vad:
+    vad[date]['height'] = np.delete(vad[date]['height'], [0,1,2])
+    for v in vad[date]:
+        if v in untouched_data:
+            continue
+        try:
+            vad[date][v] = np.delete(vad[date][v], [0,1,2], 1)
+        except:
+            continue
+        
+for date in stare:
+    stare[date]['height'] = np.delete(stare[date]['height'], [0,1,2])
+    for v in stare[date]:
+        if v in untouched_data:
+            continue
+        try:
+            stare[date][v] = np.delete(stare[date][v], [0,1,2], 1)
+        except:
+            continue
+
 #chop off data above 3km
 for date in vad:
-    too_high = np.where(vad[date]['height'] >= 3)[0]
+    too_high = np.where(vad[date]['height'] > 3)[0]
     vad[date]['height'] = np.delete(vad[date]['height'], too_high)
     for v in vad[date]:
         if np.ndim(vad[date][v]) == 2:
             vad[date][v] = np.delete(vad[date][v], too_high, 1)
             
 for date in stare:
-    too_high = np.where(stare[date]['height'] >= 3)[0]
+    too_high = np.where(stare[date]['height'] > 3)[0]
     stare[date]['height'] = np.delete(stare[date]['height'], too_high)
     for v in stare[date]:
         if np.ndim(stare[date][v]) == 2:
-            stare[date][v] = np.delete(stare[date][v], too_high, 1)          
+            stare[date][v] = np.delete(stare[date][v], too_high, 1)    
 
-# clean up bad data points        
-for date in stare:
-    for v in stare[date]:
-        if np.ndim(stare[date][v]) == 2:
-            if v != 'intensity':
-                stare[date][v][stare[date]['intensity'] < 1.01] = np.nan
-    
+# clean up bad data points 
 for date in vad:
     for v in vad[date]:
         if np.ndim(vad[date][v]) == 2:
             if v != 'intensity':
                 vad[date][v][vad[date]['intensity'] < 1.01] = np.nan
+                
+for date in stare:
+    for v in stare[date]:
+        if np.ndim(stare[date][v]) == 2:
+            if v != 'intensity':
+                stare[date][v][stare[date]['intensity'] < 1.01] = np.nan
+
+# delete scans with no data               
+for date in vad:
+    while np.nansum(vad[date]['wspd'][0]) == 0.0:
+        for v in vad[date]:
+            if v in untouched_data:
+                continue
+            vad[date][v] = np.delete(vad[date][v], 0, 0)
+    while np.nansum(vad[date]['wspd'][-1]) == 0.0:
+        for v in vad[date]:
+            if v in untouched_data:
+                continue
+            vad[date][v] = np.delete(vad[date][v], -1, 0)
+        
+for date in stare:
+    while np.nansum(stare[date]['w'][0]) == 0.0:
+        for v in stare[date]:
+            if v in untouched_data:
+                continue
+            stare[date][v] = np.delete(stare[date][v], 0, 0)
+    while np.nansum(stare[date]['w'][-1]) == 0.0:
+        for v in stare[date]:
+            if v in untouched_data:
+                continue
+            stare[date][v] = np.delete(stare[date][v], -1, 0)
 
 # find unique lats and get rid of -999 and nan
 for date in vad:
     vad[date]['lats'] = np.unique(vad[date]['lat']).tolist()
+
+for date in vad:
+    if str(vad[date]['lats'][-1]) == 'nan':
+        del vad[date]['lats'][-1]
+    if vad[date]['lats'][0] == -999:
+        del vad[date]['lats'][0] 
 
 for date in stare:
     stare[date]['lats'] = np.unique(stare[date]['lat']).tolist()
@@ -142,40 +201,6 @@ for date in stare:
     if stare[date]['lats'][0] == -999:
         del stare[date]['lats'][0]
 
-for date in vad:
-    if str(vad[date]['lats'][-1]) == 'nan':
-        del vad[date]['lats'][-1]
-    if vad[date]['lats'][0] == -999:
-        del vad[date]['lats'][0]  
-        
-# eliminate nan columns
-for date in vad:
-    vad[date]['no_data'] = np.where(np.isnan(vad[date]['wspd']).all(axis = 1))[0]
-    initial_len = len(vad[date]['wspd'])
-    for v in vad[date]:
-        if v == 'covariance_matrix' or v == 'base_time' or v == 'lats':
-            continue
-        if len(vad[date][v]) != initial_len:
-            continue
-        if np.ndim(vad[date][v]) == 1:
-            vad[date][v] = np.delete(vad[date][v], vad[date]['no_data'])
-        if np.ndim(vad[date][v]) == 2:
-            vad[date][v] = np.delete(vad[date][v], vad[date]['no_data'], 0) 
-        
-            
-for date in stare:
-    stare[date]['no_data'] = np.where(np.isnan(stare[date]['w']).all(axis = 1))[0]
-    initial_len = len(stare[date]['w'])
-    for v in stare[date]:
-        if v == 'covariance_matrix' or v == 'base_time' or v == 'lats':
-            continue
-        if len(stare[date][v]) != initial_len:
-            continue
-        if np.ndim(stare[date][v]) == 1:
-            stare[date][v] = np.delete(stare[date][v], stare[date]['no_data'])
-        if np.ndim(stare[date][v]) == 2:
-            stare[date][v] = np.delete(stare[date][v], stare[date]['no_data'], 0)
-      
 # save data as pickle file    
 with open(path + '/vad.pickle', "wb") as output_file:
     pickle.dump(vad, output_file)
@@ -294,7 +319,7 @@ with open(path + '/storm_vad.pickle', "wb") as output_file:
     
 with open(path + '/storm_stare.pickle', "wb") as output_file:
     pickle.dump(storm_stare, output_file)
-
+'''
 # open storm_data files 
 with open(path + '/storm_vad.pickle', 'rb') as fh:
     storm_vad = pickle.load(fh)
@@ -303,25 +328,24 @@ with open(path + '/storm_stare.pickle', 'rb') as fh:
     storm_stare = pickle.load(fh)
 
 for date in storm_vad:
-    for storm in storm_vad[date]:
-        if type(storm) == int:
-            figure, (ax1,ax2) = plt.subplots(2, 1, sharex = True)
-            x = storm_vad[date][storm]['time']
-            y = storm_vad[date][storm]['height']
-            z = np.transpose(storm_vad[date][storm]['wspd'])
-            z_2 = np.transpose(storm_vad[date][storm]['wdir'])
-            speed = ax1.contourf(x, y, z)
-            dir = ax2.contourf(x, y, z_2)
-            plt.xlabel('time (UTC)')
-            myFmt = mdates.DateFormatter('%H:%M')
-            plt.gca().xaxis.set_major_formatter(myFmt)
-            figure.text(0.04, 0.5, 'height above lidar (km)', va = 'center', rotation = 'vertical')
-            plt.suptitle('Storm ' + str(storm) + ' Wind Speed/Direction on ' + date)
-            plt.colorbar(speed, ax=ax1, label = 'wind speed')
-            plt.colorbar(dir, ax=ax2, label = 'wind direction', ticks = [0,60,120,180,240,300,360])
-'''
-
-
+    if date[0:4] == '2022':
+        for storm in storm_vad[date]:
+            if type(storm) == int:
+                figure, (ax1,ax2) = plt.subplots(2, 1, sharex = True)
+                x = storm_vad[date][storm]['time']
+                y = storm_vad[date][storm]['height']
+                z = np.transpose(storm_vad[date][storm]['wspd'])
+                z_2 = np.transpose(storm_vad[date][storm]['wdir'])
+                speed = ax1.contourf(x, y, z)
+                dir = ax2.contourf(x, y, z_2)
+                plt.xlabel('time (UTC)')
+                myFmt = mdates.DateFormatter('%H:%M')
+                plt.gca().xaxis.set_major_formatter(myFmt)
+                figure.text(0.04, 0.5, 'height above lidar (km)', va = 'center', rotation = 'vertical')
+                plt.suptitle('Storm ' + str(storm) + ' Wind Speed/Direction on ' + date)
+                plt.colorbar(speed, ax=ax1, label = 'wind speed')
+                plt.colorbar(dir, ax=ax2, label = 'wind direction')
+    
 
 
 
