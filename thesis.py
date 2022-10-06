@@ -9,7 +9,7 @@ import datetime as dt
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/VAD')
 vad_path = '/Users/bobbysaba/Documents/Thesis/VAD'
 path = '/Users/bobbysaba/Documents/Thesis'
-'''
+
 untouched_data = ['rows', 'cols', 'height', 'no_data', 'covariance_matrix']
 
 vad = {}
@@ -157,31 +157,6 @@ for date in stare:
             if v != 'intensity':
                 stare[date][v][stare[date]['intensity'] < 1.01] = np.nan
 
-# delete scans with no data               
-for date in vad:
-    while np.nansum(vad[date]['wspd'][0]) == 0.0:
-        for v in vad[date]:
-            if v in untouched_data:
-                continue
-            vad[date][v] = np.delete(vad[date][v], 0, 0)
-    while np.nansum(vad[date]['wspd'][-1]) == 0.0:
-        for v in vad[date]:
-            if v in untouched_data:
-                continue
-            vad[date][v] = np.delete(vad[date][v], -1, 0)
-        
-for date in stare:
-    while np.nansum(stare[date]['w'][0]) == 0.0:
-        for v in stare[date]:
-            if v in untouched_data:
-                continue
-            stare[date][v] = np.delete(stare[date][v], 0, 0)
-    while np.nansum(stare[date]['w'][-1]) == 0.0:
-        for v in stare[date]:
-            if v in untouched_data:
-                continue
-            stare[date][v] = np.delete(stare[date][v], -1, 0)
-
 # find unique lats and get rid of -999 and nan
 for date in vad:
     vad[date]['lats'] = np.unique(vad[date]['lat']).tolist()
@@ -307,6 +282,33 @@ for date in storm_vad:
                     if v == 'time':
                         storm_vad[date][n][v] = vad[date][v][indexes[n-1]:indexes[n]]
 
+# delete scans with no data               
+for date in storm_vad:
+    for storm in storm_vad[date]:
+        while np.nansum(storm_vad[storm][date]['wspd'][0]) == 0.0:
+            for v in storm_vad[storm][date]:
+                if v in untouched_data:
+                    continue
+                storm_vad[storm][date][v] = np.delete(storm_vad[storm][date][v], 0, 0)
+        while np.nansum(storm_vad[storm][date]['wspd'][-1]) == 0.0:
+            for v in storm_vad[storm][date]:
+                if v in untouched_data:
+                    continue
+                storm_vad[storm][date][v] = np.delete(storm_vad[storm][date][v], -1, 0)
+        
+for date in storm_stare:
+    for storm in storm_stare[date]:
+        while np.nansum(storm_stare[storm][date]['wspd'][0]) == 0.0:
+            for v in storm_stare[storm][date]:
+                if v in untouched_data:
+                    continue
+                storm_stare[storm][date][v] = np.delete(storm_stare[storm][date][v], 0, 0)
+        while np.nansum(storm_stare[storm][date]['wspd'][-1]) == 0.0:
+            for v in storm_stare[storm][date]:
+                if v in untouched_data:
+                    continue
+                storm_stare[storm][date][v] = np.delete(storm_stare[storm][date][v], -1, 0)
+
 for date in storm_stare:
     del storm_stare[date]['indexes']
     
@@ -319,7 +321,7 @@ with open(path + '/storm_vad.pickle', "wb") as output_file:
     
 with open(path + '/storm_stare.pickle', "wb") as output_file:
     pickle.dump(storm_stare, output_file)
-'''
+
 # open storm_data files 
 with open(path + '/storm_vad.pickle', 'rb') as fh:
     storm_vad = pickle.load(fh)
