@@ -11,9 +11,9 @@ from metpy.units import units
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/VAD')
 vad_path = '/Users/bobbysaba/Documents/Thesis/VAD'
 path = '/Users/bobbysaba/Documents/Thesis'
-
-untouched_data = ['rows', 'cols', 'height', 'no_data', 'covariance_matrix', 'lats']
 '''
+untouched_data = ['rows', 'cols', 'height', 'no_data', 'covariance_matrix', 'lats']
+
 vad = {}
 
 # convert nc files to dictionary
@@ -187,14 +187,14 @@ with open(path + '/vad.pickle', "wb") as output_file:
     
 with open(path + '/stare.pickle', "wb") as output_file:
     pickle.dump(stare, output_file)
-'''
+
 # open dict files 
 with open(path + '/vad.pickle', 'rb') as fh:
     vad = pickle.load(fh)
        
 with open(path + '/stare.pickle', 'rb') as fh:
     stare = pickle.load(fh)
-'''
+
 # create indexes for the start of new storm
 storm_stare = {}
 for date in stare:
@@ -392,7 +392,7 @@ with open(path + '/storm_vad.pickle', "wb") as output_file:
     
 with open(path + '/storm_stare.pickle', "wb") as output_file:
     pickle.dump(storm_stare, output_file)
-'''
+'''    
 # open storm_data files 
 with open(path + '/storm_vad.pickle', 'rb') as fh:
     storm_vad = pickle.load(fh)
@@ -417,18 +417,18 @@ for date in storm_vad:
             # wind speed
             speed = ax1.contourf(x, y, z, cmap = 'rainbow')
             ax1.text(x[0], 2.45, 'horiz. wind speed (m/s)')
-            plt.colorbar(speed, ax = ax1)
-            ax1.set(ylabel = 'heihgt (km)')
+            plt.colorbar(speed, ax = ax1, ticks = [0, 20, 40, 60])
+            ax1.set(ylabel = 'height (km)')
             # wind dir
-            dir = ax2.contourf(x, y, z_2)
+            dir = ax2.contourf(x, y, z_2, ticks = [0, 120, 240, 360])
             plt.colorbar(dir, ax = ax2)
             ax2.text(x[0], 2.45, 'horiz. wind dir. (˚)')
-            ax2.set(ylabel = 'heihgt (km)')
+            ax2.set(ylabel = 'height (km)')
             # vertical wind speed
             vert = ax3.contourf(x,y,z_3, cmap = 'seismic')
             plt.colorbar(vert, ax = ax3, ticks = [-10, -5, 0, 5, 10])
             ax3.text(x[0], 2.45, 'vert. wind speed (m/s)')
-            ax3.set(ylabel = 'heihgt (km)')
+            ax3.set(ylabel = 'height (km)')
             # bulk shear
             ax4.plot(x, z_4, color = 'green', label = '75-250m')
             ax4.plot(x, z_5, color = 'blue', label = '75-500m')
