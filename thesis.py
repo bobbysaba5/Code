@@ -354,6 +354,18 @@ for date in storm_vad:
                 upper = storm_vad[date][storm]['wspd'][scan][value + 1]
                 lower = storm_vad[date][storm]['wspd'][scan][value]
                 storm_vad[date][storm]['vert_shear'][scan][value + 1] = upper - lower  
+               
+# calculate vertical shear
+for date in storm_vad:
+    for storm in storm_vad[date]:
+        storm_vad[date][storm]['vert_shear'] = np.ones(np.shape(storm_vad[date][storm]['wspd']))
+        storm_vad[date][storm]['vert_shear'][:, 0] = 0
+        for scan in range(0, len(storm_vad[date][storm]['time'])):
+            for value in range(0, len(storm_vad[date][storm]['wspd'][scan]) - 1):
+                u_comp = storm_vad[date][storm]['u'][scan][value + 1] - storm_vad[date][storm]['u'][scan][value]
+                v_comp = storm_vad[date][storm]['v'][scan][value + 1] - storm_vad[date][storm]['v'][scan][value]
+                mag = ((u_comp ** 2) + (v_comp ** 2)) ** 0.5  
+                storm_vad[date][storm]['vert_shear'][scan][value + 1] = mag
                 
 # calculate storm relative helicity
 for date in storm_vad:
@@ -392,7 +404,7 @@ with open(path + '/storm_vad.pickle', "wb") as output_file:
     
 with open(path + '/storm_stare.pickle', "wb") as output_file:
     pickle.dump(storm_stare, output_file)
-'''    
+''' 
 # open storm_data files 
 with open(path + '/storm_vad.pickle', 'rb') as fh:
     storm_vad = pickle.load(fh)
@@ -403,45 +415,57 @@ with open(path + '/storm_stare.pickle', 'rb') as fh:
 
 for date in storm_vad:
     for storm in storm_vad[date]:
-        if type(storm) == int:
-            figure, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, constrained_layout = True, sharex = True)
-            # set plotting variables 
-            x = storm_vad[date][storm]['time']
-            y = storm_vad[date][storm]['height']
-            z = np.transpose(storm_vad[date][storm]['wspd'])
-            z_2 = np.transpose(storm_vad[date][storm]['wdir'])
-            z_3 = np.transpose(storm_vad[date][storm]['w'])
-            z_4 = storm_vad[date][storm]['75-250_shr']
-            z_5 = storm_vad[date][storm]['75-500_shr']
-            z_6 = storm_vad[date][storm]['75-1000_shr']
-            # wind speed
-            speed = ax1.contourf(x, y, z, cmap = 'rainbow')
-            ax1.text(x[0], 2.45, 'horiz. wind speed (m/s)')
-            plt.colorbar(speed, ax = ax1, ticks = [0, 20, 40, 60])
-            ax1.set(ylabel = 'height (km)')
-            # wind dir
-            dir = ax2.contourf(x, y, z_2, ticks = [0, 120, 240, 360])
-            plt.colorbar(dir, ax = ax2)
-            ax2.text(x[0], 2.45, 'horiz. wind dir. (˚)')
-            ax2.set(ylabel = 'height (km)')
-            # vertical wind speed
-            vert = ax3.contourf(x,y,z_3, cmap = 'seismic')
-            plt.colorbar(vert, ax = ax3, ticks = [-10, -5, 0, 5, 10])
-            ax3.text(x[0], 2.45, 'vert. wind speed (m/s)')
-            ax3.set(ylabel = 'height (km)')
-            # bulk shear
-            ax4.plot(x, z_4, color = 'green', label = '75-250m')
-            ax4.plot(x, z_5, color = 'blue', label = '75-500m')
-            ax4.plot(x, z_6, color = 'red', label = '75-1000m')
-            ax4.set(ylabel = 'shear (m/s)')
-            ax4.legend(loc = 'upper left', ncol = 3, prop = {'size':8})
-            # plot shared x label
-            plt.xlabel('time (UTC)')
-            myFmt = mdates.DateFormatter('%H:%M')
-            plt.gca().xaxis.set_major_formatter(myFmt)
-            # general formatting
-            plt.suptitle('Storm ' + str(storm) + ' Wind Speed/Direction on ' + date)
-     
+        figure, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, constrained_layout = True, sharex = True)
+        # set plotting variables 
+        x = storm_vad[date][storm]['time']
+        y = storm_vad[date][storm]['height']
+        z = np.transpose(storm_vad[date][storm]['wspd'])
+        z_2 = np.transpose(storm_vad[date][storm]['wdir'])
+        z_3 = np.transpose(storm_vad[date][storm]['w'])
+        z_4 = storm_vad[date][storm]['75-250_shr']
+        z_5 = storm_vad[date][storm]['75-500_shr']
+        z_6 = storm_vad[date][storm]['75-1000_shr']
+        # wind speed
+        speed = ax1.contourf(x, y, z, cmap = 'rainbow')
+        ax1.text(x[0], 2.4, 'horiz. wind speed (m/s)', fontsize = 9)
+        plt.colorbar(speed, ax = ax1, ticks = [0, 20, 40, 60])
+        ax1.set_ylabel('height (km)', fontsize = 9)
+        # wind dir
+        dir = ax2.contourf(x, y, z_2)
+        plt.colorbar(dir, ax = ax2, ticks = [0, 120, 240, 360])
+        ax2.text(x[0], 2.4, 'horiz. wind dir. (˚)', fontsize = 9)
+        ax2.set_ylabel('height (km)', fontsize = 9)
+        # vertical wind speed
+        vert = ax3.contourf(x,y,z_3, cmap = 'seismic')
+        plt.colorbar(vert, ax = ax3, ticks = [-10, -5, 0, 5, 10])
+        ax3.text(x[0], 2.4, 'vert. wind speed (m/s)', fontsize = 9)
+        ax3.set_ylabel('height (km)', fontsize = 9)
+        # bulk shear
+        ax4.plot(x, z_4, color = 'green', label = '250m')
+        ax4.plot(x, z_5, color = 'blue', label = '500m')
+        ax4.plot(x, z_6, color = 'red', label = '1000m')
+        ax4.set_ylabel('shear (m/s)', fontsize = 9)
+        ax4.legend(loc = 'upper left', ncol = 3, prop = {'size':9})
+        ax4.set(ylim = (0, 25))
+        # plot shared x label
+        plt.xlabel('time (UTC)')
+        myFmt = mdates.DateFormatter('%H:%M')
+        plt.gca().xaxis.set_major_formatter(myFmt)
+        # general formatting
+        plt.suptitle(date + ' Storm ' + str(storm))
+        figure.align_ylabels()
+
+# print max wind values for each date and storm
+for date in storm_vad:
+    for storm in storm_vad[date]:
+        print(date[0:4], storm, np.nanmax(storm_vad[date][storm]['wspd']), storm_vad[date][storm]['height'][np.where(storm_vad[date][storm]['wspd'] == np.nanmax(storm_vad[date][storm]['wspd']))[1][0]])
+        
+# print wind shear max issues
+print(np.nanmax(storm_vad['20190608'][3]['75-500_shr']))
+print(np.nanmax(storm_vad['20220609'][1]['75-500_shr']))
+
+
+
             
             
             
