@@ -11,9 +11,9 @@ from metpy.units import units
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/VAD')
 vad_path = '/Users/bobbysaba/Documents/Thesis/VAD'
 path = '/Users/bobbysaba/Documents/Thesis'
-'''
-untouched_data = ['rows', 'cols', 'height', 'no_data', 'covariance_matrix', 'lats']
 
+untouched_data = ['rows', 'cols', 'height', 'no_data', 'covariance_matrix', 'lats']
+'''
 vad = {}
 
 # convert nc files to dictionary
@@ -187,14 +187,14 @@ with open(path + '/vad.pickle', "wb") as output_file:
     
 with open(path + '/stare.pickle', "wb") as output_file:
     pickle.dump(stare, output_file)
-
+'''
 # open dict files 
 with open(path + '/vad.pickle', 'rb') as fh:
     vad = pickle.load(fh)
        
 with open(path + '/stare.pickle', 'rb') as fh:
     stare = pickle.load(fh)
-
+'''
 # create indexes for the start of new storm
 storm_stare = {}
 for date in stare:
@@ -354,7 +354,7 @@ for date in storm_vad:
                 upper = storm_vad[date][storm]['wspd'][scan][value + 1]
                 lower = storm_vad[date][storm]['wspd'][scan][value]
                 storm_vad[date][storm]['vert_shear'][scan][value + 1] = upper - lower  
-               
+         
 # calculate vertical shear
 for date in storm_vad:
     for storm in storm_vad[date]:
@@ -404,14 +404,13 @@ with open(path + '/storm_vad.pickle', "wb") as output_file:
     
 with open(path + '/storm_stare.pickle', "wb") as output_file:
     pickle.dump(storm_stare, output_file)
-''' 
+'''    
 # open storm_data files 
 with open(path + '/storm_vad.pickle', 'rb') as fh:
     storm_vad = pickle.load(fh)
        
 with open(path + '/storm_stare.pickle', 'rb') as fh:
     storm_stare = pickle.load(fh)
-
 
 for date in storm_vad:
     for storm in storm_vad[date]:
@@ -465,14 +464,12 @@ print(np.nanmax(storm_vad['20190608'][3]['75-500_shr']))
 print(np.nanmax(storm_vad['20220609'][1]['75-500_shr']))
 
 
-
-            
-            
-            
-            
-
-
-
+# 20220523 - 1 all one storm
+# 20220524 - 1 only scans 7 and 8
+# 20220531 - 2 (second and third period are the same storm)
+# 20220610 - 2 
+# 20220611 - 1 extension into 0612 1
+# 20220612 - 1 storm after 18z
 
 
 
