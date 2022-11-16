@@ -5,8 +5,6 @@ import matplotlib.dates as mdates
 import numpy as np
 import pickle
 import datetime as dt
-import metpy.calc as mpcalc
-from metpy.units import units
 
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/VAD')
 vad_path = '/Users/bobbysaba/Documents/Thesis/VAD'
@@ -437,50 +435,7 @@ for date in storm_vad:
             storm_vad[date][storm]['75-250_shr'][scan] = mag_250
             storm_vad[date][storm]['75-500_shr'][scan] = mag_500
             storm_vad[date][storm]['75-1000_shr'][scan] = mag_1000
-'''         
-# calculate vertical shear
-for date in storm_vad:
-    for storm in storm_vad[date]:
-        storm_vad[date][storm]['vert_shear'] = np.ones(np.shape(storm_vad[date][storm]['wspd']))
-        storm_vad[date][storm]['vert_shear'][:, 0] = 0
-        for scan in range(0, len(storm_vad[date][storm]['time'])):
-            for value in range(0, len(storm_vad[date][storm]['wspd'][scan]) - 1):
-                u_comp = storm_vad[date][storm]['u'][scan][value + 1] - storm_vad[date][storm]['u'][scan][value]
-                v_comp = storm_vad[date][storm]['v'][scan][value + 1] - storm_vad[date][storm]['v'][scan][value]
-                mag = ((u_comp ** 2) + (v_comp ** 2)) ** 0.5  
-                storm_vad[date][storm]['vert_shear'][scan][value + 1] = mag
-               
-# calculate storm relative helicity
-for date in storm_vad:
-    index_75 = np.where(vad[date]['height'] >= 0.075)[0][0]
-    index_250 = np.where(vad[date]['height'] >= 0.25)[0][0]
-    index_500 = np.where(vad[date]['height'] >= 0.5)[0][0]
-    index_1000 = np.where(vad[date]['height'] > 1)[0][0]
-    for storm in storm_vad[date]:
-        storm_vad[date][storm]['75-250_srh'] = np.ones(np.shape(storm_vad[date][storm]['time']))
-        storm_vad[date][storm]['75-500_srh'] = np.ones(np.shape(storm_vad[date][storm]['time']))
-        storm_vad[date][storm]['75-1000_srh'] = np.ones(np.shape(storm_vad[date][storm]['time']))
-        for scan in range(0, len(storm_vad[date][storm]['time'])):
-            height_250 = units.Quantity(storm_vad[date][storm]['height'][index_75:index_250 + 1], 'km')
-            height_500 = units.Quantity(storm_vad[date][storm]['height'][index_75:index_500 + 1], 'km')
-            height_1000 = units.Quantity(storm_vad[date][storm]['height'][index_75:index_1000 + 1], 'km')
-            u_250 = units.Quantity(storm_vad[date][storm]['u'][scan][index_75:index_250 + 1], 'm/s')
-            u_500 = units.Quantity(storm_vad[date][storm]['u'][scan][index_75:index_500 + 1], 'm/s')
-            u_1000 = units.Quantity(storm_vad[date][storm]['u'][scan][index_75:index_1000 + 1], 'm/s')
-            v_250 = units.Quantity(storm_vad[date][storm]['v'][scan][index_75:index_250 + 1], 'm/s')
-            v_500 = units.Quantity(storm_vad[date][storm]['v'][scan][index_75:index_500 + 1], 'm/s')
-            v_1000 = units.Quantity(storm_vad[date][storm]['v'][scan][index_75:index_1000 + 1], 'm/s')
-            depth_250 = height_250[-1] - height_250[0]
-            depth_500 = height_500[-1] - height_500[0]
-            depth_1000 = height_1000[-1] - height_1000[0]
-            bottom = height_250[0]
-            pos, neg, tot = mpcalc.storm_relative_helicity(height_250, u_250, v_250, depth_250, bottom = bottom)
-            storm_vad[date][storm]['75-250_srh'][scan] = tot.magnitude
-            pos, neg, tot = mpcalc.storm_relative_helicity(height_500, u_500, v_500, depth_500, bottom = bottom)
-            storm_vad[date][storm]['75-500_srh'][scan] = tot.magnitude
-            pos, neg, tot = mpcalc.storm_relative_helicity(height_1000, u_1000, v_1000, depth_1000, bottom = bottom)
-            storm_vad[date][storm]['75-1000_srh'][scan] = tot.magnitude
-'''
+
 poster_storms = {'20220523': [1], '20220524': [7], '20220531': [1, 2], '20220610': [1, 2], '20220611': [1], '20220612': [4], 
                  '20190525': [1, 2], '20190523': [1, 2, 3], '20190517': [1], '20190526': [1], '20190520': [1], 
                  '20190527': [2, 3], '20190528': [1], '20190608': [2], '20190611': [1]}
@@ -540,8 +495,12 @@ with open(path + '/storm_vad.pickle', "wb") as output_file:
 with open(path + '/storm_stare.pickle', "wb") as output_file:
     pickle.dump(storm_stare, output_file)
 
+# open storm vad and stare dicts
+with open(path + '/storm_vad.pickle', 'rb') as fh:
+    storm_vad = pickle.load(fh) 
 
-
+with open(path + '/storm_stare.pickle', 'rb') as fh:
+    storm_stare = pickle.load(fh) 
 
 
 
