@@ -131,7 +131,7 @@ for date in stare:
         except:
             continue
 
-#chop off data above 3km
+#chop off data above 2km
 for date in vad:
     too_high = np.where(vad[date]['height'] > 2)[0]
     vad[date]['height'] = np.delete(vad[date]['height'], too_high)
@@ -502,6 +502,7 @@ with open(path + '/storm_vad.pickle', 'rb') as fh:
 with open(path + '/storm_stare.pickle', 'rb') as fh:
     storm_stare = pickle.load(fh) 
 
+# work in and merge 2017 LIDAR data
 
 
 

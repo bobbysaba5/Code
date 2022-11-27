@@ -42,3 +42,4 @@ with open(path + 'storm_vad.pickle', 'rb') as fh:
 for date in storm_vad:
     for storm in storm_vad[date]:
         storm_vad[date][storm]['str_time'] = [time.strftime('%H%M%S') for time in storm_vad[date][storm]['time']]
+        
