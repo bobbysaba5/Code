@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import datetime as dt
 import pandas as pd
+import math
 
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/Radiosonde')
 sonde_path = '/Users/bobbysaba/Documents/Thesis/Radiosonde/'
@@ -70,6 +71,18 @@ for date in sonde_data:
             s = float(t)/3600
             sonde_data[date][time]['hour_last'] = sonde_data[date][time]['hour_first'] + s
         
+# computing u and v 
+for date in sonde_data:
+    for time in sonde_data[date]:
+        if 'w' in sonde_data[date][time]:
+            sonde_data[date][time]['u'] = np.zeros(np.shape(sonde_data[date][time]['time']))
+            sonde_data[date][time]['v'] = np.zeros(np.shape(sonde_data[date][time]['time']))
+            for value in range(0,len(sonde_data[date][time]['u'])):
+                rad = math.radians(sonde_data[date][time]['wdir'][value])
+                wspd = abs(sonde_data[date][time]['wspd'][value])
+                sonde_data[date][time]['u'][value] = -1 * wspd * math.sin(rad)
+                sonde_data[date][time]['v'][value] = -1 * wspd * math.cos(rad)
+            
 # save radiosonde data 
 with open('/Users/bobbysaba/Documents/Thesis/sonde.pickle', "wb") as output_file:
     pickle.dump(sonde_data, output_file)
