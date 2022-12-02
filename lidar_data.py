@@ -104,7 +104,6 @@ for file in data:
         if v == 'velocity':
             stare[date]['w'] = stare[date]['velocity']
     stare[date]['time'] = np.array(time_list)
-    del stare[date]['hour']
     try:
         del stare[date]['epochtime']
     except:
@@ -230,7 +229,7 @@ for date in storm_stare:
                         storm_stare[date][n][v] = stare[date][v][0:indexes[n]]
                     if np.ndim(stare[date][v]) == 1:
                         storm_stare[date][n][v] = stare[date][v]
-                    if v == 'time':
+                    if v == 'time' or 'hour':
                         storm_stare[date][n][v] = stare[date][v][0:indexes[n]]
             if len(indexes) == n:
                 for v in stare[date]:
@@ -238,7 +237,7 @@ for date in storm_stare:
                         storm_stare[date][n][v] = stare[date][v][indexes[n-1]:]
                     if np.ndim(stare[date][v]) == 1:
                         storm_stare[date][n][v] = stare[date][v]
-                    if v == 'time':
+                    if v == 'time' or 'hour':
                         storm_stare[date][n][v] = stare[date][v][indexes[n-1]:]
             if len(indexes) > n:
                 for v in stare[date]:
@@ -246,7 +245,7 @@ for date in storm_stare:
                         storm_stare[date][n][v] = stare[date][v][indexes[n-1]:indexes[n]]
                     if np.ndim(stare[date][v]) == 1:
                         storm_stare[date][n][v] = stare[date][v]
-                    if v == 'time':
+                    if v == 'time' or 'hour':
                         storm_stare[date][n][v] = stare[date][v][indexes[n-1]:indexes[n]]
                         
 for date in storm_vad:
@@ -261,7 +260,7 @@ for date in storm_vad:
                         storm_vad[date][n][v] = vad[date][v][0:indexes[n]]
                     if np.ndim(vad[date][v]) == 1:
                         storm_vad[date][n][v] = vad[date][v]
-                    if v == 'time':
+                    if v == 'time' or 'hour':
                         storm_vad[date][n][v] = vad[date][v][0:indexes[n]]
             if len(indexes) == n:
                 for v in vad[date]:
@@ -269,7 +268,7 @@ for date in storm_vad:
                         storm_vad[date][n][v] = vad[date][v][indexes[n-1]:]
                     if np.ndim(vad[date][v]) == 1:
                         storm_vad[date][n][v] = vad[date][v]
-                    if v == 'time':
+                    if v == 'time' or 'hour':
                         storm_vad[date][n][v] = vad[date][v][indexes[n-1]:]
             if len(indexes) > n:
                 for v in vad[date]:
@@ -277,7 +276,7 @@ for date in storm_vad:
                         storm_vad[date][n][v] = vad[date][v][indexes[n-1]:indexes[n]]
                     if np.ndim(vad[date][v]) == 1:
                         storm_vad[date][n][v] = vad[date][v]
-                    if v == 'time':
+                    if v == 'time' or 'hour':
                         storm_vad[date][n][v] = vad[date][v][indexes[n-1]:indexes[n]]
 
 for date in storm_stare:

@@ -82,6 +82,16 @@ for date in sonde_data:
                 wspd = abs(sonde_data[date][time]['wspd'][value])
                 sonde_data[date][time]['u'][value] = -1 * wspd * math.sin(rad)
                 sonde_data[date][time]['v'][value] = -1 * wspd * math.cos(rad)
+
+for date in sonde_data:
+    for time in sonde_data[date]:
+        for height in range(0, len(sonde_data[date][time]['height']) - 1):
+            if sonde_data[date][time]['height'][height + 1] - sonde_data[date][time]['height'][height] < 0:
+                for v in sonde_data[date][time]:
+                    if v == 'hour_first' or 'hour_last':
+                        continue
+                        sonde_data[date][time][v] = np.delete(sonde_data[date][time][v], height + 1)
+
             
 # save radiosonde data 
 with open('/Users/bobbysaba/Documents/Thesis/sonde.pickle', "wb") as output_file:

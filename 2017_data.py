@@ -3,6 +3,7 @@ import netCDF4 as nc
 import numpy as np
 import os.path
 import pickle
+import math
 
 data = os.listdir('/Users/bobbysaba/Documents/Thesis/DL_data_2017')
 path = '/Users/bobbysaba/Documents/Thesis/DL_data_2017/'
@@ -83,6 +84,18 @@ for date in data_2017:
             if np.ndim(data_2017[date][storm][v]) == 2:
                 data_2017[date][storm][v] = np.delete(data_2017[date][storm][v], too_high, 1)
     
+# calculate u and v
+for date in data_2017:
+    for storm in data_2017[date]:
+        data_2017[date][storm]['u'] = np.ones(np.shape(data_2017[date][storm]['wspd']))
+        data_2017[date][storm]['v'] = data_2017[date][storm]['u']
+        for scan in range(0, len(data_2017[date][storm]['wspd'])):
+            for value in range(0, len(data_2017[date][storm]['wspd'][scan])):
+                rad = math.radians(data_2017[date][storm]['wdir'][scan][value])
+                wspd = abs(data_2017[date][storm]['wspd'][scan][value])
+                data_2017[date][storm]['u'][scan][value] = -1 * wspd * math.sin(rad)
+                data_2017[date][storm]['v'][scan][value] = -1 * wspd * math.cos(rad)
+        
 # save data 
 with open('/Users/bobbysaba/Documents/Thesis/lidar_2017.pickle', "wb") as output_file:
     pickle.dump(data_2017, output_file)        
