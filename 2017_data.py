@@ -83,12 +83,31 @@ for date in data_2017:
         for v in data_2017[date][storm]:
             if np.ndim(data_2017[date][storm][v]) == 2:
                 data_2017[date][storm][v] = np.delete(data_2017[date][storm][v], too_high, 1)
-    
+
+# clean up bad data points 
+for date in data_2017:
+    for v in data_2017[date]:
+        if np.ndim(data_2017[date][v]) == 2:
+            if v != 'intensity':
+                data_2017[date][v][data_2017[date]['intensity'] < 1.01] = np.nan
+                
+# delete data where wspd is greater than 35 m/s 
+for date in data_2017:
+    for storm in data_2017[date]:
+        for v in data_2017[date][storm]:
+            if np.ndim(data_2017[date][storm][v]) == 2:
+                if v != 'wspd':
+                    data_2017[date][storm][v][data_2017[date][storm]['wspd'] > 35] = np.nan
+                    
+for date in data_2017:
+    for storm in data_2017[date]:
+        data_2017[date][storm]['wspd'][data_2017[date][storm]['wspd'] > 35] = np.nan
+                
 # calculate u and v
 for date in data_2017:
     for storm in data_2017[date]:
         data_2017[date][storm]['u'] = np.ones(np.shape(data_2017[date][storm]['wspd']))
-        data_2017[date][storm]['v'] = data_2017[date][storm]['u']
+        data_2017[date][storm]['v'] = np.ones(np.shape(data_2017[date][storm]['wspd']))
         for scan in range(0, len(data_2017[date][storm]['wspd'])):
             for value in range(0, len(data_2017[date][storm]['wspd'][scan])):
                 rad = math.radians(data_2017[date][storm]['wdir'][scan][value])

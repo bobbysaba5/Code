@@ -46,7 +46,6 @@ for file in data:
         if v == 'height' and year == 2019:
             vad[date]['height'] = vad[date]['height'] / 1000
         if v == 'windspeed' or v == 'wspd':
-            vad[date][v][vad[date][v] > 35] = np.nan
             vad[date]['wspd'] = vad[date][v]
             if v == 'windspeed':
                 del vad[date]['windspeed']
@@ -157,6 +156,15 @@ for date in stare:
         if np.ndim(stare[date][v]) == 2:
             if v != 'intensity':
                 stare[date][v][stare[date]['intensity'] < 1.01] = np.nan
+                 
+for date in vad:
+    for v in vad[date]:
+        if np.ndim(vad[date][v]) == 2:
+            if v != 'wspd':
+                vad[date][v][vad[date]['wspd'] > 35] = np.nan
+                
+for date in vad:
+    vad[date]['wspd'][vad[date]['wspd'] > 35] = np.nan
                 
 for date in vad:
     vad[date]['wdir'][vad[date]['wspd'] == np.nan] = np.nan
@@ -179,13 +187,6 @@ for date in stare:
 # fix lat error in 20220531 data
 for scan in range(0, 6):
     vad['20220531']['lat'][scan] = 36.9386
-
-# save vad and stare data    
-with open(path + '/vad.pickle', "wb") as output_file:
-    pickle.dump(vad, output_file)
-    
-with open(path + '/stare.pickle', "wb") as output_file:
-    pickle.dump(stare, output_file)
 
 # create indexes for the start of new storm
 storm_stare = {}
@@ -278,13 +279,13 @@ for date in storm_vad:
                         storm_vad[date][n][v] = vad[date][v]
                     if v == 'time' or 'hour':
                         storm_vad[date][n][v] = vad[date][v][indexes[n-1]:indexes[n]]
-
+        
 for date in storm_stare:
     del storm_stare[date]['indexes']
     
 for date in storm_vad:
     del storm_vad[date]['indexes']
-    
+                
 # handle repositioning on 20220523
 for storm in range(2, 6):
     for v in storm_vad['20220523'][1]:
@@ -384,6 +385,13 @@ for v in storm_vad['20190523'][2]:
         storm_vad['20190523'][3][v] = storm_vad['20190523'][2][v]
         storm_vad['20190523'][2][v] = np.delete(storm_vad['20190523'][2][v], third_storm, 0)
 
+# merge 2017 data 
+with open(path + '/lidar_2017.pickle', 'rb') as fh:
+    data_2017 = pickle.load(fh) 
+
+for date in data_2017:
+    storm_vad[date] = data_2017[date]
+    
 # delete scans with no data               
 for date in storm_vad:
     for storm in storm_vad[date]:
@@ -411,13 +419,24 @@ for date in storm_stare:
                     continue
                 storm_stare[date][storm][v] = np.delete(storm_stare[date][storm][v], -1, 0)
 
+# fix height issue on 20220529
+for date in storm_vad:
+    for storm in storm_vad[date]:
+        try:
+            storm_vad[date][storm]['height'] = vad[date]['height']
+        except:
+            continue
+
 # calculate bulk shear
 for date in storm_vad:
-    index_75 = np.where(vad[date]['height'] >= 0.075)[0][0]
-    index_250 = np.where(vad[date]['height'] >= 0.25)[0][0]
-    index_500 = np.where(vad[date]['height'] >= 0.5)[0][0]
-    index_1000 = np.where(vad[date]['height'] > 1)[0][0]
     for storm in storm_vad[date]:
+        index_75 = np.where(storm_vad[date][storm]['height'] >= 0.075)[0][0]
+        index_250 = np.where(storm_vad[date][storm]['height'] >= 0.25)[0][0]
+        index_500 = np.where(storm_vad[date][storm]['height'] >= 0.5)[0][0]
+        try:
+            index_1000 = np.where(storm_vad[date][storm]['height'] > 1)[0][0]
+        except:
+            index_1000 = index_75
         storm_vad[date][storm]['75-250_shr'] = np.ones(np.shape(storm_vad[date][storm]['time']))
         storm_vad[date][storm]['75-500_shr'] = np.ones(np.shape(storm_vad[date][storm]['time']))
         storm_vad[date][storm]['75-1000_shr'] = np.ones(np.shape(storm_vad[date][storm]['time']))
@@ -434,15 +453,14 @@ for date in storm_vad:
             storm_vad[date][storm]['75-250_shr'][scan] = mag_250
             storm_vad[date][storm]['75-500_shr'][scan] = mag_500
             storm_vad[date][storm]['75-1000_shr'][scan] = mag_1000
-
-# merge 2017 data 
-with open(path + '/lidar_2017.pickle', 'rb') as fh:
-    data_2017 = pickle.load(fh) 
-
-for date in data_2017:
-    storm_vad[date] = data_2017[date]
     
-# save storm vad and stare data 
+# save data     
+with open(path + '/vad.pickle', "wb") as output_file:
+    pickle.dump(vad, output_file)
+    
+with open(path + '/stare.pickle', "wb") as output_file:
+    pickle.dump(stare, output_file)
+    
 with open(path + '/storm_vad.pickle', "wb") as output_file:
     pickle.dump(storm_vad, output_file)
     

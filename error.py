@@ -75,7 +75,8 @@ for date in sonde_data:
             if len(np.where(np.logical_and(times >= start, times <= end))[0]) > 0:
                 sonde_lidar[date][launch]['lidar_height'] = storm_vad[date][storm]['height']
                 scans = np.where(np.logical_and(times >= start, times <= end))[0]
-                sonde_lidar[date][launch]['lidar_scans'] = len(scans)
+                sonde_lidar[date][launch]['num_scans'] = len(scans)
+                sonde_lidar[date][launch]['lidar_scans'] = scans
                 lidar_u = np.ones((len(scans), len(storm_vad[date][storm]['u'][0])))
                 lidar_v = np.ones((len(scans), len(storm_vad[date][storm]['v'][0])))
                 lidar_u[0] = storm_vad[date][storm]['u'][scans[0]]
@@ -86,6 +87,8 @@ for date in sonde_data:
                         lidar_v[i] = storm_vad[date][storm]['v'][scans[i]]
                 sonde_lidar[date][launch]['lidar_u'] = np.nanmean(lidar_u, axis = 0)
                 sonde_lidar[date][launch]['lidar_v'] = np.nanmean(lidar_v, axis = 0)
+                sonde_lidar[date][launch]['lidar_u_scans'] = lidar_u
+                sonde_lidar[date][launch]['lidar_v_scans'] = lidar_v
                 continue        
         launch += 1
 
@@ -100,18 +103,20 @@ for date in sonde_lidar:
             
 for i in range(0, len(no_lidar_2['date'])):
     del sonde_lidar[no_lidar_2['date'][i]][no_lidar_2['launch'][i]]
-       
+
 # plot hodographs
 for date in sonde_lidar:
     for launch in sonde_lidar[date]:
-        # u = sonde_lidar[date][launch]['lidar_u'] * units('m/s')
-        # v = sonde_lidar[date][launch]['lidar_v'] * units('m/s')
-        # height = sonde_lidar[date][launch]['lidar_height'] * units('m')
-        h = Hodograph(component_range = 30)
-        # h.plot(u, v, linewidth = 2, color = 'blue')  
+        fig = plt.figure(figsize = (6, 6))
+        ax = fig.add_subplot(1, 1, 1)
+        u = sonde_lidar[date][launch]['lidar_u'] * units('m/s')
+        v = sonde_lidar[date][launch]['lidar_v'] * units('m/s')
+        height = sonde_lidar[date][launch]['lidar_height'] * units('m')
+        h = Hodograph(ax, component_range = 30)
+        h.plot(u, v, linewidth = 2, color = 'blue')  
         u = sonde_lidar[date][launch]['sonde_u'] * units('m/s')
         v = sonde_lidar[date][launch]['sonde_v'] * units('m/s')
         height = sonde_lidar[date][launch]['sonde_height'] * units('m')
-        h.plot_colormapped(u, v, height, linewidth = 2, intervals = [0, 500, 1000, 2000], cmap = plt.get_cmap('tab10'))
+        h.plot(u, v, linewidth = 2, color = 'red') 
         h.add_grid(increment = 5)
-    
+        ax.set_title(str(date) + ' ' + str(launch))
