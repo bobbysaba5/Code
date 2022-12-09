@@ -10,7 +10,7 @@ path = '/Users/bobbysaba/Documents/Thesis/DL_data_2017/'
 
 untouched_data = ['rows', 'cols', 'height', 'no_data', 'covariance_matrix', 'lats']
 unused_data = ['base_time', 'alt', 'lat', 'lon', 'time_offset', 'maxht']
-
+#%%
 data_2017 = {}
 for file in data:
     scan_info = file.split('.')
@@ -65,8 +65,7 @@ for file in data:
                         month += 1
                         time_list.append(dt.datetime(year, month, day, hours, minutes, seconds))
         data_2017[date][1]['time'] = np.array(time_list)
-
-
+#%%
 # delete scans closest to the ground and trim data above 2km
 for date in data_2017:
     for storm in data_2017[date]:
@@ -83,12 +82,22 @@ for date in data_2017:
         for v in data_2017[date][storm]:
             if np.ndim(data_2017[date][storm][v]) == 2:
                 data_2017[date][storm][v] = np.delete(data_2017[date][storm][v], too_high, 1)
-    
+
+for date in data_2017:
+    for storm in data_2017[date]:
+        for v in data_2017[date][storm]:
+            if v != 'intensity':
+                if v != 'wspd':
+                    if np.ndim(data_2017[date][storm][v]) == 2:
+                        data_2017[date][storm][v][data_2017[date][storm]['wspd'] > 35] = np.nan
+                        data_2017[date][storm][v][data_2017[date][storm]['s2n'] < 1.01] = np.nan
+        data_2017[date][storm]['wspd'][data_2017[date][storm]['wspd'] > 35] = np.nan
+
 # calculate u and v
 for date in data_2017:
     for storm in data_2017[date]:
         data_2017[date][storm]['u'] = np.ones(np.shape(data_2017[date][storm]['wspd']))
-        data_2017[date][storm]['v'] = data_2017[date][storm]['u']
+        data_2017[date][storm]['v'] = np.ones(np.shape(data_2017[date][storm]['wspd']))
         for scan in range(0, len(data_2017[date][storm]['wspd'])):
             for value in range(0, len(data_2017[date][storm]['wspd'][scan])):
                 rad = math.radians(data_2017[date][storm]['wdir'][scan][value])

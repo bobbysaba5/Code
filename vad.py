@@ -48,7 +48,6 @@ for file in data:
         if v == 'height' and year == 2019:
             vad[date]['height'] = vad[date]['height'] / 1000
         if v == 'windspeed' or v == 'wspd':
-            vad[date][v][vad[date][v] > 35] = np.nan
             vad[date]['wspd'] = vad[date][v]
             if v == 'windspeed':
                 del vad[date]['windspeed']
@@ -66,6 +65,7 @@ for file in data:
 
 # get rid of dates with no or all bad data
 del vad['20220526']
+
 #%%
 # delete lowest 3 values
 for date in vad:
@@ -89,19 +89,18 @@ for date in vad:
 # clean up bad data points with intensity and r_sq
 for date in vad:
     for v in vad[date]:
+        vad[date]['wspd'][vad[date]['wspd'] > 35] = np.nan
         if np.ndim(vad[date][v]) == 2:
             if v != 'intensity':
-                vad[date][v][vad[date]['intensity'] < 1.01] = np.nan
+                if v != 'r_sq':
+                    vad[date][v][vad[date]['intensity'] < 1.01] = np.nan
+                    vad[date][v][vad[date]['r_sq'] < 0.95] = np.nan
+                    vad[date][v][vad[date]['wspd'] == np.nan] = np.nan
+    vad[date]['u'][vad[date]['u'] > 35] = np.nan
+    vad[date]['u'][vad[date]['u'] < -35] = np.nan
+    vad[date]['v'][vad[date]['v'] > 35] = np.nan
+    vad[date]['v'][vad[date]['v'] < -35] = np.nan
 
-for date in vad:
-    for v in vad[date]:
-        if np.ndim(vad[date][v]) == 2:
-            if v != 'r_sq':
-                vad[date][v][vad[date]['r_sq'] < 0.95] = np.nan
-                
-for date in vad:
-    for v in wind_vars:
-        vad[date][v][vad[date]['wspd'] == np.nan] = np.nan
 #%%
 # find unique lats and get rid of -999 and nan
 for date in vad:

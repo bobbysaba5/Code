@@ -8,14 +8,11 @@ path = '/Users/bobbysaba/Documents/Thesis'
 # open storm vad and stare dicts
 with open(path + '/storm_vad.pickle', 'rb') as fh:
     storm_vad = pickle.load(fh) 
-
-with open(path + '/storm_stare.pickle', 'rb') as fh:
-    storm_stare = pickle.load(fh) 
     
 poster_storms = {'20220523': [1], '20220524': [7], '20220531': [1, 2], '20220610': [1, 2], '20220611': [1], '20220612': [4], 
                  '20190525': [1, 2], '20190523': [1, 2, 3], '20190517': [1], '20190526': [1], '20190520': [1], 
-                 '20190527': [2, 3], '20190528': [1], '20190609': [1], '20190611': [1]}
-
+                 '20190527': [2, 3], '20190528': [1], '20190609': [1], '20190612': [1]}
+#%%
 for date in poster_storms:
     real_storm = 1
     for storm in poster_storms[date]:

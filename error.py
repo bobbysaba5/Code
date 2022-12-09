@@ -52,6 +52,10 @@ del storm_vad['20190602'][3]
 # delete days of sonde data where there is no lidar data
 for date in no_lidar:
     del sonde_data[date]
+
+# save storm data 
+with open(path + '/storm_vad.pickle', "wb") as output_file:
+    pickle.dump(storm_vad, output_file)  
 #%%    
 sonde_lidar = {}
     
@@ -105,6 +109,7 @@ for i in range(0, len(no_lidar_2['date'])):
 #%%
 # plot hodographs
 for date in sonde_lidar:
+    year = date[0:4]
     for launch in sonde_lidar[date]:
         fig = plt.figure(figsize = (6, 6))
         ax = fig.add_subplot(1, 1, 1)
@@ -119,6 +124,7 @@ for date in sonde_lidar:
         h.plot(u, v, linewidth = 2, color = 'red') 
         h.add_grid(increment = 5)
         ax.set_title(str(date) + ' ' + str(launch))
+        plt.savefig('/Users/bobbysaba/Documents/Thesis/Hodographs/' + str(year) + '/' + str(date) + '_' + str(launch) + '.jpg', dpi = 400)
         
 rms = {'2017': storm_vad['20170522'][1]['rms'], 
        '2019': storm_vad['20190528'][1]['rms'],
