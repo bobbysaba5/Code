@@ -88,19 +88,34 @@ for date in vad:
 
 # clean up bad data points with intensity and r_sq
 for date in vad:
-    for v in vad[date]:
-        vad[date]['wspd'][vad[date]['wspd'] > 35] = np.nan
-        if np.ndim(vad[date][v]) == 2:
-            if v != 'intensity':
-                if v != 'r_sq':
-                    vad[date][v][vad[date]['intensity'] < 1.01] = np.nan
-                    vad[date][v][vad[date]['r_sq'] < 0.95] = np.nan
-                    vad[date][v][vad[date]['wspd'] == np.nan] = np.nan
-    vad[date]['u'][vad[date]['u'] > 35] = np.nan
-    vad[date]['u'][vad[date]['u'] < -35] = np.nan
-    vad[date]['v'][vad[date]['v'] > 35] = np.nan
-    vad[date]['v'][vad[date]['v'] < -35] = np.nan
+    if date[0:4] == '2019':
+        for v in vad[date]:
+            vad[date]['wspd'][vad[date]['wspd'] > 35] = np.nan
+            if np.ndim(vad[date][v]) == 2:
+                if v != 'intensity':
+                    if v != 'r_sq':
+                        vad[date][v][vad[date]['intensity'] < 1.01] = np.nan
+                        vad[date][v][vad[date]['r_sq'] < 0.95] = np.nan
+                        vad[date][v][vad[date]['wspd'] == np.nan] = np.nan
+        vad[date]['u'][vad[date]['u'] > 35] = np.nan
+        vad[date]['u'][vad[date]['u'] < -35] = np.nan
+        vad[date]['v'][vad[date]['v'] > 35] = np.nan
+        vad[date]['v'][vad[date]['v'] < -35] = np.nan
 
+for date in vad:
+    if date[0:4] == '2022':
+        for v in vad[date]:
+            vad[date]['wspd'][vad[date]['wspd'] > 35] = np.nan
+            if np.ndim(vad[date][v]) == 2:
+                if v != 'intensity':
+                    if v != 'r_sq':
+                        vad[date][v][vad[date]['intensity'] < 1.01] = np.nan
+                        vad[date][v][vad[date]['r_sq'] < 0.85] = np.nan
+                        vad[date][v][vad[date]['wspd'] == np.nan] = np.nan
+        vad[date]['u'][vad[date]['u'] > 35] = np.nan
+        vad[date]['u'][vad[date]['u'] < -35] = np.nan
+        vad[date]['v'][vad[date]['v'] > 35] = np.nan
+        vad[date]['v'][vad[date]['v'] < -35] = np.nan
 #%%
 # find unique lats and get rid of -999 and nan
 for date in vad:
